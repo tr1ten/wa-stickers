@@ -6,9 +6,9 @@ import shutil
 import sys
 import getopt
 
-whatsAppPath = './wa-sticker'
-pathToStickers = './stickers'
-duration = 3600
+whatsAppPath = '/storage/emulated/0/WhatsApp/Media/WhatsApp Stickers'
+pathToStickers = '/storage/emulated/0/stickers'
+duration =1800
 
 
 def getRecentStickerFiles(duration=3):
@@ -17,6 +17,8 @@ def getRecentStickerFiles(duration=3):
     recentFiles = []
     recentDuration = time.time()
     for file in os.listdir(whatsAppPath):
+        if(os.path.splitext(file)[1]!='.webp'):
+            continue
         try:
             st = os.stat(os.path.join(whatsAppPath, file))
         except Exception as e:
@@ -32,13 +34,14 @@ def replaceWithSticker(listOfFiles, pathToStickers='./stickers', resize_to=(512,
     if(not os.path.exists(pathToStickers)):
 	   	raise ValueError('input Stickers directory doesnt exist!')
     stickers = os.listdir(pathToStickers)
+    stickers = list(filter(lambda f:os.path.splitext(f)[1] in ['.webp','.gif'],stickers))
     print('[!] found {} stickers to add'.format(min(len(stickers), len(listOfFiles))))
     for file in zip(stickers, listOfFiles):
         copy_From = os.path.join(pathToStickers, file[0])
         copy_To = os.path.join(whatsAppPath, file[1])
         print('[+] adding {} to Whatsapp Sticker'.format(file[0]))
         if(os.path.splitext(copy_From)[1] == '.gif'):
-            resize_gif(copy_From, copy_To, resize_to=resize_to)
+            resize_gif(copy_From, copy_To)
         elif(os.path.splitext(copy_From)[1] == '.webp'):
             shutil.copyfile(copy_From, copy_To)
         else:
@@ -69,7 +72,8 @@ def main(argv):
     usr = input('this will replace recent whatsapp stickers with new one , still want to do this? (y|Y to continue) ')
     if(usr.lower()=='y'):
         replaceWithSticker(getRecentStickerFiles(duration=duration),pathToStickers=pathToStickers)
-
+    print('Done, Now clear cache of WhatsApp')
 
 if __name__ == '__main__':
     main(sys.argv[1:])
+
